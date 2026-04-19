@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Droplet</title>
+    <meta
+      name="description"
+      content="A calm music-reactive site with droplets, ripples, and abstract visuals."
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <canvas id="scene" aria-hidden="true"></canvas>
+
+    <div class="backdrop" aria-hidden="true">
+      <div class="mist mist-a"></div>
+      <div class="mist mist-b"></div>
+      <div class="mist mist-c"></div>
+      <div class="grain"></div>
+    </div>
+
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Music-reactive stillness</p>
+        <h1>Droplet</h1>
+        <p class="lede">
+          Share the tab you are listening in, use your microphone, or drift in
+          demo mode. The visuals stay soft, fluid, and slow until the track
+          pushes them open.
+        </p>
+
+        <div class="controls" role="group" aria-label="Audio controls">
+          <button id="share-audio" class="button button-primary">
+            Share tab audio
+          </button>
+          <button id="mic-audio" class="button">Use microphone</button>
+          <button id="demo-mode" class="button">Demo pulse</button>
+          <label class="button button-file" for="audio-file">Load a track</label>
+          <input id="audio-file" type="file" accept="audio/*" />
+        </div>
+
+        <p id="status" class="status">
+          Idle. Start with tab audio for the cleanest response.
+        </p>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-block">
+          <p class="panel-label">Current state</p>
+          <p id="source-label" class="panel-value">No source connected</p>
+        </div>
+
+        <div class="panel-block">
+          <p class="panel-label">Energy split</p>
+          <div class="meter-row">
+            <span>Bass</span>
+            <div class="meter"><div id="bass-meter" class="meter-fill"></div></div>
+          </div>
+          <div class="meter-row">
+            <span>Mid</span>
+            <div class="meter"><div id="mid-meter" class="meter-fill"></div></div>
+          </div>
+          <div class="meter-row">
+            <span>Air</span>
+            <div class="meter"><div id="high-meter" class="meter-fill"></div></div>
+          </div>
+        </div>
+
+        <div class="panel-block panel-caption">
+          Droplets swell with low-end weight. Ripples respond to transients.
+          The center bloom traces the spectral contour in real time.
+        </div>
+      </aside>
+    </main>
+
+    <audio id="audio-player" preload="metadata" crossorigin="anonymous"></audio>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
