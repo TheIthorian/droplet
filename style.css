@@ -183,6 +183,41 @@ label {
   align-items: center;
 }
 
+.view-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.85rem;
+  padding-top: 0.55rem;
+  margin-top: 0.15rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.view-hint {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.view-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.btn-view[aria-pressed="true"] {
+  border-color: rgba(168, 220, 232, 0.32);
+  background: rgba(168, 220, 232, 0.14);
+  color: var(--accent);
+}
+
+.btn-view[aria-pressed="false"]:hover {
+  border-color: var(--stroke-hover);
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;
