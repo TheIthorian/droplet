@@ -20,6 +20,11 @@ let dpr = Math.min(window.devicePixelRatio || 1, 2);
 const droplets = [];
 const ripples = [];
 
+const BLOOM_SEGMENTS = 128;
+const bloomRadiiScratch = new Float32Array(BLOOM_SEGMENTS);
+const bloomRadiiSmoothed = new Float32Array(BLOOM_SEGMENTS);
+const bloomContourPoints = Array.from({ length: BLOOM_SEGMENTS }, () => ({ x: 0, y: 0 }));
+
 let animationId = 0;
 let audioContext;
 let analyser;
@@ -335,6 +340,63 @@ function spawnRipple(x, y, radius, strength) {
   });
 }
 
+function sampleBloomSpectrum(progress) {
+  if (!frequencyData || frequencyData.length === 0) {
+    return state.mid;
+  }
+
+  const length = frequencyData.length;
+  const span = length * 0.45;
+  const position = progress * span;
+  const index = Math.floor(position);
+  const fraction = position - index;
+  const safeIndex = clamp(index, 0, length - 1);
+  const nextIndex = clamp(index + 1, 0, length - 1);
+  const valueA = frequencyData[safeIndex] / 255;
+  const valueB = frequencyData[nextIndex] / 255;
+
+  return valueA * (1 - fraction) + valueB * fraction;
+}
+
+function smoothRing3Tap(radii, work, count, passes) {
+  for (let pass = 0; pass < passes; pass += 1) {
+    for (let index = 0; index < count; index += 1) {
+      const previous = radii[(index - 1 + count) % count];
+      const current = radii[index];
+      const next = radii[(index + 1) % count];
+      work[index] = previous * 0.22 + current * 0.56 + next * 0.22;
+    }
+
+    for (let index = 0; index < count; index += 1) {
+      radii[index] = work[index];
+    }
+  }
+}
+
+function traceSmoothClosedCardinal(points, count, curvatureDivisor) {
+  if (count < 3) {
+    return;
+  }
+
+  const first = points[0];
+  context.moveTo(first.x, first.y);
+
+  for (let index = 0; index < count; index += 1) {
+    const previous = points[(index - 1 + count) % count];
+    const current = points[index];
+    const next = points[(index + 1) % count];
+    const afterNext = points[(index + 2) % count];
+    const control1x = current.x + (next.x - previous.x) / curvatureDivisor;
+    const control1y = current.y + (next.y - previous.y) / curvatureDivisor;
+    const control2x = next.x - (afterNext.x - current.x) / curvatureDivisor;
+    const control2y = next.y - (afterNext.y - current.y) / curvatureDivisor;
+
+    context.bezierCurveTo(control1x, control1y, control2x, control2y, next.x, next.y);
+  }
+
+  context.closePath();
+}
+
 function drawBackground(now) {
   const seconds = now * 0.001;
   const hueA = 198 + state.hueShift * 0.12;
@@ -384,38 +446,41 @@ function drawBloom(now) {
   const centerX = width * 0.5;
   const centerY = height * 0.54;
   const baseRadius = Math.min(width, height) * (0.12 + state.intensity * 0.05);
-  const petals = 64;
+  const segments = BLOOM_SEGMENTS;
+  const squash = 0.76 + state.mid * 0.15;
+
+  for (let index = 0; index < segments; index += 1) {
+    const progress = index / segments;
+    const angle = progress * Math.PI * 2;
+    const spectrum = sampleBloomSpectrum(progress);
+    const pulse =
+      Math.sin(angle * 2 + seconds * 1.8) * 5 +
+      Math.cos(angle * 1.5 - seconds * 1.15) * 6;
+    const radius =
+      baseRadius +
+      spectrum * 78 +
+      state.bass * 36 +
+      pulse +
+      Math.sin(seconds * 0.9 + angle * 1.1) * 10;
+    bloomRadiiScratch[index] = Math.max(baseRadius * 0.35, radius);
+  }
+
+  smoothRing3Tap(bloomRadiiScratch, bloomRadiiSmoothed, segments, 4);
+
+  for (let index = 0; index < segments; index += 1) {
+    const progress = index / segments;
+    const angle = progress * Math.PI * 2;
+    const radius = bloomRadiiScratch[index];
+    const point = bloomContourPoints[index];
+    point.x = Math.cos(angle) * radius;
+    point.y = Math.sin(angle) * radius * squash;
+  }
 
   context.save();
   context.translate(centerX, centerY);
   context.rotate(seconds * 0.03 + state.high * 0.18);
   context.beginPath();
-
-  for (let index = 0; index <= petals; index += 1) {
-    const progress = index / petals;
-    const angle = progress * Math.PI * 2;
-    const bandIndex = Math.floor(progress * (frequencyData?.length || 128) * 0.45);
-    const spectrum = frequencyData ? frequencyData[bandIndex] / 255 : state.mid;
-    const pulse =
-      Math.sin(angle * 5 + seconds * 1.8) * 8 +
-      Math.cos(angle * 3 - seconds * 1.15) * 12;
-    const radius =
-      baseRadius +
-      spectrum * 90 +
-      state.bass * 40 +
-      pulse +
-      Math.sin(seconds * 0.9 + angle * 2) * 16;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius * (0.76 + state.mid * 0.15);
-
-    if (index === 0) {
-      context.moveTo(x, y);
-    } else {
-      context.lineTo(x, y);
-    }
-  }
-
-  context.closePath();
+  traceSmoothClosedCardinal(bloomContourPoints, segments, 9);
 
   const bloom = context.createRadialGradient(0, 0, 0, 0, 0, baseRadius * 2.4);
   bloom.addColorStop(0, `rgba(246, 253, 255, ${0.34 + state.intensity * 0.26})`);
