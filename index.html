@@ -21,58 +21,54 @@
       <div class="grain"></div>
     </div>
 
-    <main class="shell">
-      <section class="hero">
-        <p class="eyebrow">Music-reactive stillness</p>
-        <h1>Droplet</h1>
-        <p class="lede">
-          Share the tab you are listening in, use your microphone, or drift in
-          demo mode. The visuals stay soft, fluid, and slow until the track
-          pushes them open.
-        </p>
+    <main class="chrome" aria-label="Droplet controls">
+      <div class="chrome-inner">
+        <header class="chrome-head">
+          <p class="wordmark">Droplet</p>
+          <p id="source-label" class="source">No source</p>
+        </header>
 
-        <div class="controls" role="group" aria-label="Audio controls">
-          <button id="share-audio" class="button button-primary">
-            Share tab audio
-          </button>
-          <button id="mic-audio" class="button">Use microphone</button>
-          <button id="demo-mode" class="button">Demo pulse</button>
-          <label class="button button-file" for="audio-file">Load a track</label>
-          <input id="audio-file" type="file" accept="audio/*" />
+        <div class="chrome-body">
+          <div class="controls" role="group" aria-label="Audio controls">
+            <button id="share-audio" class="btn btn-primary" type="button">
+              Tab audio
+            </button>
+            <button id="mic-audio" class="btn" type="button">Mic</button>
+            <button id="demo-mode" class="btn" type="button">Demo</button>
+            <label class="btn btn-file" for="audio-file">Open file</label>
+            <input id="audio-file" type="file" accept="audio/*" />
+          </div>
+
+          <div
+            class="spectrum"
+            role="group"
+            aria-label="Frequency energy"
+          >
+            <div class="spectrum-row">
+              <span class="spectrum-label">Low</span>
+              <div class="spectrum-track">
+                <div id="bass-meter" class="spectrum-fill"></div>
+              </div>
+            </div>
+            <div class="spectrum-row">
+              <span class="spectrum-label">Mid</span>
+              <div class="spectrum-track">
+                <div id="mid-meter" class="spectrum-fill"></div>
+              </div>
+            </div>
+            <div class="spectrum-row">
+              <span class="spectrum-label">High</span>
+              <div class="spectrum-track">
+                <div id="high-meter" class="spectrum-fill"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <p id="status" class="status">
-          Idle. Start with tab audio for the cleanest response.
+          Idle — tab audio is clearest when your player is in this tab.
         </p>
-      </section>
-
-      <aside class="panel">
-        <div class="panel-block">
-          <p class="panel-label">Current state</p>
-          <p id="source-label" class="panel-value">No source connected</p>
-        </div>
-
-        <div class="panel-block">
-          <p class="panel-label">Energy split</p>
-          <div class="meter-row">
-            <span>Bass</span>
-            <div class="meter"><div id="bass-meter" class="meter-fill"></div></div>
-          </div>
-          <div class="meter-row">
-            <span>Mid</span>
-            <div class="meter"><div id="mid-meter" class="meter-fill"></div></div>
-          </div>
-          <div class="meter-row">
-            <span>Air</span>
-            <div class="meter"><div id="high-meter" class="meter-fill"></div></div>
-          </div>
-        </div>
-
-        <div class="panel-block panel-caption">
-          Droplets swell with low-end weight. Ripples respond to transients.
-          The center bloom traces the spectral contour in real time.
-        </div>
-      </aside>
+      </div>
     </main>
 
     <audio id="audio-player" preload="metadata" crossorigin="anonymous"></audio>
